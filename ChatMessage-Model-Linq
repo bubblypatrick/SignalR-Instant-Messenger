@@ -1,22 +1,29 @@
-public class ChatMessage
-    {
-        [Display(Name = "Id")]
-        public Guid ChatMessageId { get; set; }
-        [Display(Name = "Sender")]
-        public string Sender { get; set; }
-        [Display(Name = "Date")]
-        public DateTime Date { get; set; }
-        [Display(Name = "Message")]
-        public string Message { get; set; }
-    }
+// Open and close the chat modal on click. Referenced in _Layout.cshtml
+function openChat() {
+    $("#chat-modal").modal()
+};
+function closeChat() {
+    $("#chat-modal").fadeOut(170);
+};
 
-public ActionResult Chat()
-        {
-            using (var context = new ApplicationDbContext())
-            {
-                var messages = from m in context.ChatMessages                                       //Linq statement to query all saved chat messages from
-                               orderby m.Date ascending                                             //ChatMessage table.
-                               select m;
-                return View(messages.ToList());             
-            }
-        }
+//prints newly sent instant message to everyones messenger
+chat.client.receiveMessage = function (userName, message) {
+    $('#discussion').prepend('<li><strong>' + userName + '</strong >: ' + message + '</li>');
+};
+
+//called on users who receive a new message
+chat.client.launchChat = function () {
+    openChat();
+};
+
+//populates messages from database into messenger on startup
+chat.client.populateMessages = function (messageList) {
+    for (var message in messageList) {
+        $('#discussion').append('<li><strong>' + messageList[message]['UserName'] + '</strong >: ' + messageList[message]['Message'] + '</li>');
+    }
+};  
+
+//clears message box if user sends a message
+chat.client.clearChat = function () {
+    $('#message-box').val("");
+};
