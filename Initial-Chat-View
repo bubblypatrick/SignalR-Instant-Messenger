@@ -1,7 +1,8 @@
 @* This is my initial implementation on the instant messenger. I decided to create it on a separate view to reduce merge conflicts while
     the initial layout was being worked on by several other people. This messenger page has a few extra features not included in the final 
     product, including changing the format of the date to only show the time if the message was sent the day of, and to color and place 
-    messages differently if it was sent by the user or by other users.
+    messages differently if it was sent by the user or by other users. Some functions are no longer relevant to this page, please see 
+    the chat-final page for the fully working model.
 *@
 
 @using System.Collections.Generic
