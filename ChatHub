@@ -8,25 +8,59 @@ namespace ManagementPortal.Models
 {                                                                               //installed Install-Package Microsoft.AspNet.SignalR -Version 2.4.1
     public class ChatHub : Hub
     {
-
-        public void SendMessage(string name, string message)
+        //When message is sent, it is stored in database,
+        public void SendMessage(string message)
         {
+            string userName = Context.User.Identity.Name;                       //Gets the user name of the person who sent the message
+            if (userName == "" || string.IsNullOrEmpty(message)) { return; }    //If user is not logged in or sends blank message, end function.
+
             using (var context = new ApplicationDbContext())                    //Opens connection to database
             {
                 var chatMessage = new ChatMessage();                            //Chat message object to be populated and passed to table
                 chatMessage.Date = DateTime.Now;
                 chatMessage.ChatMessageId = Guid.NewGuid();         
-                chatMessage.Sender = name;
+                chatMessage.Sender = userName;
                 chatMessage.Message = message;
 
-                context.ChatMessages.Add(chatMessage);                          //Adding chat message to the chat message table, then closes connection
+                context.ChatMessages.Add(chatMessage);                          //Adds chat message object to the chat message table, then closes connection
                 context.SaveChanges();
             }
-            DateTime dt = DateTime.Now;
-            string timeString = dt.DayOfWeek + " " +                            //String for javascript side display.
-                dt.ToShortTimeString() + " " + dt.ToShortDateString();
 
-            Clients.All.addNewMessageToPage(name, message, timeString);         //This calls a message on all clients javascript function called addNewMessage.
+            //populate new messaeg then open chat for any other logged on users, and clear chat box for sender
+            Clients.All.receiveMessage(userName, message);
+            Clients.Others.launchChat();
+            Clients.Caller.clearChat();
+        }
+
+
+        //On page load, gets messages from database and sends them to user
+        public void GetMessages()
+        {
+            List<MessageObject> messageList = new List<MessageObject>();
+            using (var context = new ApplicationDbContext())
+            {
+                var messageQuery = from m in context.ChatMessages                                       
+                                   orderby m.Date descending                                            
+                                   select m;
+
+                foreach (ChatMessage databaseMessage in messageQuery)
+                {
+                    MessageObject newMessage = new MessageObject();
+                    newMessage.UserName = databaseMessage.Sender;
+                    newMessage.Message = databaseMessage.Message;
+                    
+                    messageList.Add(newMessage);
+                }
+            }
+            Clients.Caller.populateMessages(messageList);
+        }
+        
+        //This class is similar to a viewmodel. Feel free to refactor this into the models folder. Date is not currently being used, but could be implemented into chat modal!
+        public class MessageObject
+        {
+            public string UserName  { get; set; }
+            public string Message { get; set; }
+            public DateTime Date { get; set; }
         }
     }
 }
