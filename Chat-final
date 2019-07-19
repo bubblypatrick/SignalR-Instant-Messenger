@@ -1,0 +1,109 @@
+@*These files are included on the _layout view to give the whole site access to instant messaging! Modal css is included at the end.*@
+
+<!-- Chat Modal -->
+<div id="chat-modal" class="modal modal-right" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div id="chat-header" class="modal-header">
+                <h4 class="modal-title">Welcome to Chat!</h4>
+                <button id="close-icon" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form class="modal-body">
+                <ul class="overflow-auto" id="discussion">
+                    <!-- Remove the test list items below when functionality is added -->
+                    <li><strong>Bob Smith</strong>: Hello everyone, quick reminder about the upcoming meeting tomorrow.</li>
+                    <li><strong>Jane Doe</strong>: It starts at 9:00am.</li>
+                    <li><strong>Announcement </strong>: You must be logged in order to successfully send new messages!</li>
+                </ul>
+                <textarea id="message-box" placeholder="Type a message here..." required></textarea>
+                <button id="send-message" type="button" class="btn" onclick="">Send</button>
+            </form>
+        </div>
+    </div>
+</div>
+ 
+ 
+ @Scripts.Render("~/bundles/chat")                                                               @*This bundle and script are required to make signalr run*@
+    <script src="~/signalr/hubs"></script>
+    <script>
+        var chat = $.connection.chatHub;                                                            //This creates the chat object. ChatHub Functions are called on this object
+        $.connection.hub.start().done(function () {                                                 //Function called by user and sends message to server.
+            $('#send-message').click(function () {
+                chat.server.sendMessage($('#message-box').val());
+            });
+        });
+    </script>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+    <script>
+        chat.connection.start().done(function () {
+            chat.server.getMessages();
+        });
+    </script>
+    
+    
+   /***** Chat Styling *****/
+    #chat-header {
+    color: white;
+    background-color: var(--dark-grey);
+    border-radius: inherit;
+    border: inherit;
+}
+
+.modal-header {
+    padding: 0px;
+}
+
+.modal-title {
+    width: 100%;
+    text-align: center;
+    margin: auto;
+}
+
+#close-icon {
+    padding-right: 15px;
+    margin: 0px;
+}
+
+/* Message history */
+#discussion {
+    padding: 0px;
+    list-style-type: none;
+    overflow-y: scroll;
+    min-height: 200px;
+    max-height: 200px;
+}
+
+/* Textarea to enter a new message */
+#message-box {
+    resize: none;
+    width: 80%;
+    height: 40px;
+    padding: 5px;
+    border-radius: 5px;
+    vertical-align: bottom;
+}
+
+#send-message {
+    color: white;
+    background-color: var(--dark-grey);
+    height: 40px;
+    width: 65px;
+}
+
+.modal-right .modal-dialog {
+    position: fixed;
+    left: auto;
+    right: 30px;
+    bottom: 0px;
+    height: 400px;
+    width: 400px;
+}
+
+.modal-backdrop {
+    display: none; /* Prevents the background from being greyed out when the modal is open */
+}
+/***** End of chat styling *****/
